@@ -26,11 +26,11 @@ public class PlayerController : Bolt.EntityBehaviour<IRobotState>
     {
         state.SetTransforms(state.Transform, transform);
         //Broken //Animations may be broken
-        /*state.SetAnimator(GetComponentInChildren<Animator>());
+        state.SetAnimator(GetComponentInChildren<Animator>());
 
         // Configure Animator
         state.Animator.SetLayerWeight(0, 1);
-        state.Animator.SetLayerWeight(1, 1);*/
+        state.Animator.SetLayerWeight(1, 1);
     }
 
     void PollKeys(bool mouse)
@@ -93,14 +93,14 @@ public class PlayerController : Bolt.EntityBehaviour<IRobotState>
             cmd.Result.JumpFrames = motorState.jumpFrames;
 
             //Animations may be broken
-            /*if (cmd.IsFirstExecution)
+            if (cmd.IsFirstExecution)
             {
                 AnimatePlayer(cmd);
-            }*/
+            }
         }
     }
     //animate player broken
-    /*void AnimatePlayer(PlayerCommand cmd)
+    void AnimatePlayer(PlayerCommand cmd)
     {
         // FWD <> BWD movement
         if (cmd.Input.Forward ^ cmd.Input.Backward)
@@ -127,5 +127,5 @@ public class PlayerController : Bolt.EntityBehaviour<IRobotState>
         {
             state.Jump();
         }
-    }*/
+    }
 }
