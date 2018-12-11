@@ -4,7 +4,8 @@
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
@@ -45,8 +46,8 @@ MonoBehaviour:
     connectionRequestAttempts: 20
   debugClientCount: 2
   debugStartPort: 50538
-  debugStartMapName: PhotonGame
-  debugPlayAsServer: 0
+  debugStartMapName: GettingStarted
+  debugPlayAsServer: 1
   showDebugInfo: 1
   overrideTimeScale: 1
   logUncaughtExceptions: 0
@@ -62,7 +63,7 @@ MonoBehaviour:
   serializeProjectAsText: 0
   photonAppId: 4437497d-811c-48f8-be78-956f2ab7e93a
   photonUsePunch: 1
-  photonCloudRegionIndex: 0
+  photonCloudRegionIndex: 13
   photonUseOnPremise: 0
   photonOnPremiseIpAddress: 127.0.0.1
   instantiateMode: 2

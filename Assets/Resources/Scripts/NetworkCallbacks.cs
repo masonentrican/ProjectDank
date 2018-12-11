@@ -2,24 +2,31 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[BoltGlobalBehaviour]
+[BoltGlobalBehaviour(BoltNetworkModes.Server, "GettingStarted")]
 public class NetworkCallbacks : Bolt.GlobalEventListener
 {
     List<string> logMessages = new List<string>();
 
 
-    /// <summary>
-    /// Function runs on scene loading. Instantiates a cube prefab that has our control logic attached
-    /// </summary>
-    public override void SceneLoadLocalDone(string map)
+    void Awake()
     {
-        // Random spawn position
-        var spawnPosition = new Vector3(Random.Range(-8, 8), 0, Random.Range(-8, 8));
-
-        // instantiate cube
-        BoltNetwork.Instantiate(BoltPrefabs.Robot, spawnPosition, Quaternion.identity);
+        PlayerObjectRegistry.CreateServerPlayer();
     }
 
+    public override void Connected(BoltConnection connection)
+    {
+        PlayerObjectRegistry.CreateClientPlayer(connection);
+    }
+
+    public override void SceneLoadLocalDone(string map)
+    {
+        PlayerObjectRegistry.ServerPlayer.Spawn();
+    }
+
+    public override void SceneLoadRemoteDone(BoltConnection connection)
+    {
+        PlayerObjectRegistry.GetPlayer(connection).Spawn();
+    }
 
     /// <summary>
     /// Handles receiving events
