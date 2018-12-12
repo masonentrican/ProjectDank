@@ -2,7 +2,7 @@
 using com.dankstudios;
 using UnityEngine;
 
-public class PlayerController : Bolt.EntityBehaviour<IRobotState>
+public class PlayerController : Bolt.EntityBehaviour<IPlayerState>
 {
     const float MOUSE_SENSITIVITY = 2f;
 
@@ -11,11 +11,15 @@ public class PlayerController : Bolt.EntityBehaviour<IRobotState>
     bool _left;
     bool _right;
     bool _jump;
-
+    bool _primaryFire;
+    bool _secondaryFire;
     float _yaw;
     float _pitch;
 
     PlayerMotor _motor;
+
+    [SerializeField]
+    ItemBase[] items;
 
     void Awake()
     {
@@ -31,6 +35,11 @@ public class PlayerController : Bolt.EntityBehaviour<IRobotState>
         // Configure Animator
         state.Animator.SetLayerWeight(0, 1);
         state.Animator.SetLayerWeight(1, 1);
+
+        state.OnPrimaryFire = () =>
+        {
+            items[0].PrimaryFire(entity);
+        };
     }
 
     void PollKeys(bool mouse)
@@ -40,6 +49,9 @@ public class PlayerController : Bolt.EntityBehaviour<IRobotState>
         _left = Input.GetKey(KeyCode.A);
         _right = Input.GetKey(KeyCode.D);
         _jump = Input.GetKeyDown(KeyCode.Space);
+
+        _primaryFire = Input.GetMouseButton(0);
+        _secondaryFire = Input.GetMouseButton(1);
 
         if (mouse)
         {
@@ -69,7 +81,8 @@ public class PlayerController : Bolt.EntityBehaviour<IRobotState>
         input.Jump = _jump;
         input.Yaw = _yaw;
         input.Pitch = _pitch;
-
+        input.secondaryFire = _secondaryFire;
+        input.primaryFire = _primaryFire;
         entity.QueueInput(input);
     }
     public override void ExecuteCommand(Command command, bool resetState)
@@ -96,10 +109,29 @@ public class PlayerController : Bolt.EntityBehaviour<IRobotState>
             if (cmd.IsFirstExecution)
             {
                 AnimatePlayer(cmd);
+
+                
+                state.pitch = cmd.Input.Pitch;
+
+                if (cmd.Input.primaryFire)
+                {
+                    UseItem(cmd);
+                }
             }
         }
     }
-    //animate player broken
+
+    void UseItem(Command cmd)
+    {
+        if (items[0].FireFrame + items[0].FireInterval <= BoltNetwork.serverFrame)
+        {
+            items[0].FireFrame = BoltNetwork.serverFrame;
+            state.PrimaryFire();
+        }
+    }
+
+
+    //animate player broken -fixed
     void AnimatePlayer(PlayerCommand cmd)
     {
         // FWD <> BWD movement

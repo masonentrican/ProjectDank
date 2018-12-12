@@ -1,4 +1,5 @@
 ﻿using com.dankstudios;
+using UnityEngine;
 [BoltGlobalBehaviour("GettingStarted")]
 
 
@@ -14,8 +15,12 @@
 
         public override void ControlOfEntityGained(BoltEntity entity)
         {
+            // give the camera our players pitch
+            PlayerCamera.instance.getPitch = () => entity.GetState<IPlayerState>().pitch;
             // this tells the player camera to look at the entity we are controlling
             PlayerCamera.instance.SetTarget(entity);
+            // add an audio listener for our character
+            entity.gameObject.AddComponent<AudioListener>();
         }
     }
 
