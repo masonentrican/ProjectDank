@@ -1,5 +1,4 @@
 ﻿using Bolt;
-using com.dankstudios;
 using UnityEngine;
 
 public class PlayerController : Bolt.EntityBehaviour<IPlayerState>
@@ -16,10 +15,19 @@ public class PlayerController : Bolt.EntityBehaviour<IPlayerState>
     float _yaw;
     float _pitch;
 
+    int item;
+
     PlayerMotor _motor;
 
     [SerializeField]
-    ItemBase[] items;
+    ItemBase[] _items;
+
+    [SerializeField]
+    AudioSource _itemSfxSource;
+    public ItemBase activeItem
+    {
+        get { return _items[state.item]; }
+    }
 
     void Awake()
     {
@@ -35,11 +43,43 @@ public class PlayerController : Bolt.EntityBehaviour<IPlayerState>
         // Configure Animator
         state.Animator.SetLayerWeight(0, 1);
         state.Animator.SetLayerWeight(1, 1);
-
+        /*
         state.OnPrimaryFire = () =>
         {
-            items[0].PrimaryFire(entity);
+            _items[_currentItem].PrimaryFire(entity);
         };
+        state.OnSecondaryFire = () =>
+        {
+            _items[_currentItem].SecondaryFire(entity);
+        };
+         */
+
+        state.OnPrimaryFire += OnPrimaryFire;
+        state.AddCallback("item", ItemChanged);
+        Debug.Log("item changed");
+        // setup weapon
+        ItemChanged();
+    }
+    void OnPrimaryFire()
+    {
+        // play sfx
+        _itemSfxSource.PlayOneShot(activeItem.useSound);
+
+        //GameUI.instance.crosshair.Spread += 0.1f;
+
+        activeItem.Fx(entity);
+    }
+
+    void ItemChanged()
+    {
+        // setup weapon
+        for (int i = 0; i < _items.Length; ++i)
+        {
+            _items[i].gameObject.SetActive(false);
+        }
+
+        _items[state.item].gameObject.SetActive(true);
+        Debug.Log("itemcahnged function");
     }
 
     void PollKeys(bool mouse)
@@ -49,10 +89,30 @@ public class PlayerController : Bolt.EntityBehaviour<IPlayerState>
         _left = Input.GetKey(KeyCode.A);
         _right = Input.GetKey(KeyCode.D);
         _jump = Input.GetKeyDown(KeyCode.Space);
+        
+        _primaryFire = Input.GetMouseButtonDown(0);
+        _secondaryFire = Input.GetMouseButtonDown(1);
 
-        _primaryFire = Input.GetMouseButton(0);
-        _secondaryFire = Input.GetMouseButton(1);
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
 
+            item = 0;
+            state.item = item;
+            ItemChanged();
+            
+        }
+        else if (Input.GetKeyDown(KeyCode.Alpha2))
+        {
+
+            item = 1;
+            state.item = item;
+            ItemChanged();
+        }
+        else if (Input.GetKeyDown(KeyCode.Alpha3))
+        {
+
+            item = 2; 
+        }
         if (mouse)
         {
             _yaw += (Input.GetAxisRaw("Mouse X") * MOUSE_SENSITIVITY);
@@ -117,16 +177,52 @@ public class PlayerController : Bolt.EntityBehaviour<IPlayerState>
                 {
                     UseItem(cmd);
                 }
+
+                if(cmd.Input.secondaryFire)
+                {
+                    Aim(cmd);
+                }
             }
         }
     }
 
-    void UseItem(Command cmd)
+    void UseItem(PlayerCommand cmd)
     {
-        if (items[0].FireFrame + items[0].FireInterval <= BoltNetwork.serverFrame)
+        if (activeItem.FireFrame + activeItem.FireInterval <= BoltNetwork.serverFrame)
         {
-            items[0].FireFrame = BoltNetwork.serverFrame;
+            activeItem.FireFrame = BoltNetwork.serverFrame;
             state.PrimaryFire();
+        }
+        // if we are the owner and the active weapon is a hitscan weapon, do logic
+        if (entity.isOwner)
+        {
+            activeItem.PrimaryFire(cmd, entity);
+        }
+    }
+
+    void Aim(Command cmd)
+    {
+       
+            state.SecondaryFire();
+        
+    }
+
+    public void ApplyDamage(byte damage)
+    {
+        if (!state.dead)
+        {
+
+            state.health -= damage;
+
+            if (state.health > 100 || state.health < 0)
+            {
+                state.health = 0;
+            }
+        }
+
+        if (state.health == 0)
+        {
+            Debug.Log("dead");
         }
     }
 

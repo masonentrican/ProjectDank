@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 
-namespace com.dankstudios
-{
+
     public class PlayerCamera : BoltSingletonPrefab<PlayerCamera>
     {
         // damp velocity of camera
@@ -160,4 +159,3 @@ namespace com.dankstudios
         }
     }
 
-}

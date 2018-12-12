@@ -1,4 +1,4 @@
-﻿using com.dankstudios;
+﻿
 using UnityEngine;
 [BoltGlobalBehaviour("GettingStarted")]
 

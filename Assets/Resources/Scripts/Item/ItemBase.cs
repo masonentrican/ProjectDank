@@ -20,7 +20,7 @@ public class ItemBase : MonoBehaviour
     public Transform shellEjector;
 
     [SerializeField]
-    public AudioClip fireSound;
+    public AudioClip useSound;
 
     [SerializeField]
     public byte damage = 25;
@@ -53,7 +53,11 @@ public class ItemBase : MonoBehaviour
     public virtual void DisplayEffects(BoltEntity entity)
     {
     }
-    public virtual void PrimaryFire(BoltEntity entity)
+    public virtual void PrimaryFire(PlayerCommand cmd, BoltEntity entity)
+    {
+
+    }
+    public virtual void SecondaryFire(BoltEntity entity)
     {
 
     }
