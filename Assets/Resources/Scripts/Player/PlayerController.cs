@@ -97,7 +97,7 @@ public class PlayerController : Bolt.EntityBehaviour<IPlayerState>
         {
 
             item = 0;
-            state.item = item;
+           // state.item = item;
             ItemChanged();
             
         }
@@ -105,7 +105,7 @@ public class PlayerController : Bolt.EntityBehaviour<IPlayerState>
         {
 
             item = 1;
-            state.item = item;
+           // state.item = item;
             ItemChanged();
         }
         else if (Input.GetKeyDown(KeyCode.Alpha3))
@@ -141,6 +141,7 @@ public class PlayerController : Bolt.EntityBehaviour<IPlayerState>
         input.Jump = _jump;
         input.Yaw = _yaw;
         input.Pitch = _pitch;
+        input.item = item;
         input.secondaryFire = _secondaryFire;
         input.primaryFire = _primaryFire;
         entity.QueueInput(input);
@@ -172,6 +173,7 @@ public class PlayerController : Bolt.EntityBehaviour<IPlayerState>
 
                 
                 state.pitch = cmd.Input.Pitch;
+                state.item = cmd.Input.item;
 
                 if (cmd.Input.primaryFire)
                 {
