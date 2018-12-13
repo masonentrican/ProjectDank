@@ -69,6 +69,17 @@ using Bolt;
                             spawnPoint = hit.transform.GetChild(1).transform;
                         }
                     }
+                    else if (prefabToSpawn == BoltPrefabs.Foundation && hit.transform.tag.ToString() == "Foundation")
+                    {
+                        if (ghostWall == null)
+                        {
+                            //Debug.Log("hti the raycast");
+                            ghostWall = hit.transform.GetChild(0).gameObject;
+                            ghostWall.SetActive(true);
+                            spawnPoint = hit.transform.GetChild(1).transform;
+                        }
+                    }
+
                     else if (ghostWall != null)
                     {
 
@@ -87,7 +98,7 @@ using Bolt;
 
             if (entity.isOwner)
             {
-                if(prefabToSpawn == BoltPrefabs.Wall && spawnPoint == null)
+                if(prefabToSpawn == BoltPrefabs.Foundation && spawnPoint == null)
                 {
                     Debug.Log("test");
                     IPlayerState state = entity.GetState<IPlayerState>();
@@ -108,12 +119,12 @@ using Bolt;
 
                     if (Physics.Raycast(r, out rh, maxDistance))
                     {
-                        BoltNetwork.Instantiate(prefabToSpawn, new Vector3(rh.point.x, rh.point.y + 1.5f, rh.point.z), entity.transform.rotation);
+                        BoltNetwork.Instantiate(prefabToSpawn, new Vector3(rh.point.x, rh.point.y, rh.point.z), entity.transform.rotation);
                     }
                 }
                 if(spawnPoint)
                 {
-                    BoltNetwork.Instantiate(prefabToSpawn, new Vector3(spawnPoint.position.x, spawnPoint.position.y + 1.5f, spawnPoint.position.z), spawnPoint.rotation);
+                    BoltNetwork.Instantiate(prefabToSpawn, new Vector3(spawnPoint.position.x, spawnPoint.position.y, spawnPoint.position.z), spawnPoint.rotation);
                 }
                 
                 /*IPlayerState state = entity.GetState<IPlayerState>();
@@ -159,7 +170,7 @@ using Bolt;
                 switch (currentPrefab)
                 {
                     case 0:
-                        prefabToSpawn = BoltPrefabs.DoorWay;
+                        prefabToSpawn = BoltPrefabs.Foundation;
                         currentPrefab++;
                         break;
                     case 1:
@@ -168,10 +179,14 @@ using Bolt;
                         break;
                     case 2:
                         prefabToSpawn = BoltPrefabs.Floor;
+                        currentPrefab++;
+                        break;
+                    case 3:
+                        prefabToSpawn = BoltPrefabs.DoorWay;
                         currentPrefab = 0;
                         break;
                     default:
-                        if (currentPrefab < 0 || currentPrefab > 2)
+                        if (currentPrefab < 0 || currentPrefab > 3)
                         {
                             currentPrefab = 0;
                         }
