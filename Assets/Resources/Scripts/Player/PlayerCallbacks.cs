@@ -1,5 +1,4 @@
-﻿using com.dankstudios;
-using UnityEngine;
+﻿using UnityEngine;
 [BoltGlobalBehaviour("GettingStarted")]
 
 
@@ -11,6 +10,8 @@ using UnityEngine;
         // this just instantiates our player camera,
         // the Instantiate() method is supplied by the BoltSingletonPrefab<T> class
         PlayerCamera.Instantiate();
+        UIController.Instantiate();
+
         }
 
         public override void ControlOfEntityGained(BoltEntity entity)
@@ -19,6 +20,9 @@ using UnityEngine;
             PlayerCamera.instance.getPitch = () => entity.GetState<IPlayerState>().pitch;
             // this tells the player camera to look at the entity we are controlling
             PlayerCamera.instance.SetTarget(entity);
+            // Tell UIController what entity is the player
+            UIController.instance.SetPlayer(entity);
+            UIController.instance.SetUiReferences();
             // add an audio listener for our character
             entity.gameObject.AddComponent<AudioListener>();
         }

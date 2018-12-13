@@ -1,9 +1,17 @@
 ﻿using Bolt;
-using com.dankstudios;
 using UnityEngine;
 
 public class PlayerController : Bolt.EntityBehaviour<IPlayerState>
 {
+    public enum uiStateMachine
+    {
+        _none,
+        _inventory,
+        _paused     
+    }
+
+    public uiStateMachine uiState;
+
     const float MOUSE_SENSITIVITY = 2f;
 
     bool _forward;
@@ -13,24 +21,33 @@ public class PlayerController : Bolt.EntityBehaviour<IPlayerState>
     bool _jump;
     bool _primaryFire;
     bool _secondaryFire;
+    bool _inventory;
     float _yaw;
     float _pitch;
 
     PlayerMotor _motor;
+
+    public UIController _uiController;
+
+    GameObject userInterface;
 
     [SerializeField]
     ItemBase[] items;
 
     void Awake()
     {
+        // Set Motor Component Reference
         _motor = GetComponent<PlayerMotor>();
+        // Set Player
+        uiState = uiStateMachine._none;
+
     }
 
     public override void Attached()
     {
-        state.SetTransforms(state.Transform, transform);
-        //Broken //Animations may be broken
+        state.SetTransforms(state.Transform, transform);        
         state.SetAnimator(GetComponentInChildren<Animator>());
+        
 
         // Configure Animator
         state.Animator.SetLayerWeight(0, 1);
@@ -40,6 +57,7 @@ public class PlayerController : Bolt.EntityBehaviour<IPlayerState>
         {
             items[0].PrimaryFire(entity);
         };
+
     }
 
     void PollKeys(bool mouse)
@@ -50,17 +68,29 @@ public class PlayerController : Bolt.EntityBehaviour<IPlayerState>
         _right = Input.GetKey(KeyCode.D);
         _jump = Input.GetKeyDown(KeyCode.Space);
 
-        _primaryFire = Input.GetMouseButton(0);
-        _secondaryFire = Input.GetMouseButton(1);
 
-        if (mouse)
-        {
-            _yaw += (Input.GetAxisRaw("Mouse X") * MOUSE_SENSITIVITY);
-            _yaw %= 360f;
-
-            _pitch += (-Input.GetAxisRaw("Mouse Y") * MOUSE_SENSITIVITY);
-            _pitch = Mathf.Clamp(_pitch, -85f, +85f);
+        //_inventory = Input.GetKeyDown(KeyCode.I);
+        if (Input.GetKeyDown(KeyCode.I)) {
+            ToggleInventory(null);
         }
+
+
+        // Mouse based input
+        if (uiState == uiStateMachine._none)
+        {
+            _primaryFire = Input.GetMouseButton(0);
+            _secondaryFire = Input.GetMouseButton(1);
+
+            if (mouse)
+            {
+                _yaw += (Input.GetAxisRaw("Mouse X") * MOUSE_SENSITIVITY);
+                _yaw %= 360f;
+
+                _pitch += (-Input.GetAxisRaw("Mouse Y") * MOUSE_SENSITIVITY);
+                _pitch = Mathf.Clamp(_pitch, -85f, +85f);
+            }
+        }
+        
     }
 
     void Update()
@@ -83,8 +113,10 @@ public class PlayerController : Bolt.EntityBehaviour<IPlayerState>
         input.Pitch = _pitch;
         input.secondaryFire = _secondaryFire;
         input.primaryFire = _primaryFire;
+        input.Inventory = _inventory;
         entity.QueueInput(input);
     }
+
     public override void ExecuteCommand(Command command, bool resetState)
     {
         PlayerCommand cmd = (PlayerCommand)command;
@@ -105,14 +137,16 @@ public class PlayerController : Bolt.EntityBehaviour<IPlayerState>
             cmd.Result.IsGrounded = motorState.isGrounded;
             cmd.Result.JumpFrames = motorState.jumpFrames;
 
+            if (cmd.Input.Inventory)
+            {
+                ToggleInventory(cmd);                
+            }
+
             //Animations may be broken
             if (cmd.IsFirstExecution)
             {
-                AnimatePlayer(cmd);
-
-                
+                AnimatePlayer(cmd);                
                 state.pitch = cmd.Input.Pitch;
-
                 if (cmd.Input.primaryFire)
                 {
                     UseItem(cmd);
@@ -127,6 +161,36 @@ public class PlayerController : Bolt.EntityBehaviour<IPlayerState>
         {
             items[0].FireFrame = BoltNetwork.serverFrame;
             state.PrimaryFire();
+        }
+    }
+
+    void ToggleInventory(Command cmd)
+    {
+        // Send call to UIController if all references have already been set
+        Debug.Log("PlayerController.cs : ToggleInventory() - Send call to UIController.InputHandler()");
+
+        _uiController.InventoryToggle();
+        UpdateCursor();                
+        
+    }
+
+
+    public void UpdateCursor()
+    {
+        switch (uiState)
+        {
+            case uiStateMachine._none:
+                Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
+                break;
+            case uiStateMachine._inventory:
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
+                break;
+            default:
+                Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
+                break;
         }
     }
 

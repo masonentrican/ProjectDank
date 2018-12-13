@@ -5,6 +5,9 @@ TagManager:
   serializedVersion: 2
   tags:
   - Enemy
+  - ShowOnInventory
+  - ShowOnPause
+  - UserInterface
   layers:
   - Default
   - TransparentFX
