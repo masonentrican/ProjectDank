@@ -6,7 +6,7 @@ using Bolt;
 
     public class ItemWrench : ItemBase
     {
-        public Transform player;
+        
         public Transform asset;
         public Material phantomMaterial;
         int currentPrefab = 0;
@@ -15,13 +15,108 @@ using Bolt;
         public ConstructStateMachine constructState = ConstructStateMachine.none;
 
         GameObject phantom;
+        GameObject ghostWall = null;
+        Transform spawnPoint = null;
+        BoltEntity player;
+        void Awake()
+        {
+            player = GetComponentInParent<BoltEntity>();
+        }
+        void Update()
+        {
+            if (player.isOwner)
+            {
+                
+                float maxDistance = 100f;
+                Vector3 pos;
+                Quaternion look;
+                IPlayerState state = player.GetState<IPlayerState>();
+                // this calculate the looking angle for this specific entity
+                PlayerCamera.instance.CalculateCameraAimTransform(player.transform, state.pitch, out pos, out look);
+                Debug.DrawRay(pos, look * Vector3.forward);
+                RaycastHit hit;
+                Ray r = new Ray(pos, look * Vector3.forward);
+
+                if (Physics.Raycast(r, out hit, maxDistance))
+                {
+                    if (prefabToSpawn == BoltPrefabs.DoorWay && hit.transform.tag.ToString() == "WallTop")
+                    {
+                        //Debug.Log("hti the raycast");
+                        if (ghostWall == null)
+                        {
+                            ghostWall = hit.transform.GetChild(1).gameObject;
+                            ghostWall.SetActive(true);
+                            spawnPoint = hit.transform.GetChild(2).transform;
+                        }
+                    }
+                    else if (prefabToSpawn == BoltPrefabs.Wall && hit.transform.tag.ToString() == "WallTop")
+                    {
+                        //Debug.Log("hti the raycast");
+                        if (ghostWall == null)
+                        {
+                            ghostWall = hit.transform.GetChild(0).gameObject;
+                            ghostWall.SetActive(true);
+                            spawnPoint = hit.transform.GetChild(2).transform;
+                        }
+                    }
+                    else if (prefabToSpawn == BoltPrefabs.Floor && hit.transform.tag.ToString() == "FloorTop")
+                    {
+                        if (ghostWall == null)
+                        {
+                            //Debug.Log("hti the raycast");
+                            ghostWall = hit.transform.GetChild(0).gameObject;
+                            ghostWall.SetActive(true);
+                            spawnPoint = hit.transform.GetChild(1).transform;
+                        }
+                    }
+                    else if (ghostWall != null)
+                    {
+
+                        ghostWall.SetActive(false);
+                        ghostWall = null;
+                        spawnPoint = null;
+                    }
 
 
+                }
+            }
+            
+        }
         public override void PrimaryFire(PlayerCommand cmd, BoltEntity entity)
         {
+
             if (entity.isOwner)
             {
-                IPlayerState state = entity.GetState<IPlayerState>();
+                if(prefabToSpawn == BoltPrefabs.Wall && spawnPoint == null)
+                {
+                    Debug.Log("test");
+                    IPlayerState state = entity.GetState<IPlayerState>();
+                    PlayerController controller = entity.GetComponent<PlayerController>();
+
+                    Vector3 pos;
+                    Quaternion look;
+
+                    // this calculate the looking angle for this specific entity
+                    PlayerCamera.instance.CalculateCameraAimTransform(entity.transform, state.pitch, out pos, out look);
+
+                    // display debug
+                    Debug.DrawRay(pos, look * Vector3.forward);
+
+                    Ray r = new Ray(pos, look * Vector3.forward);
+                    RaycastHit rh;
+                    float maxDistance = 10f;
+
+                    if (Physics.Raycast(r, out rh, maxDistance))
+                    {
+                        BoltNetwork.Instantiate(prefabToSpawn, new Vector3(rh.point.x, rh.point.y + 1.5f, rh.point.z), entity.transform.rotation);
+                    }
+                }
+                if(spawnPoint)
+                {
+                    BoltNetwork.Instantiate(prefabToSpawn, new Vector3(spawnPoint.position.x, spawnPoint.position.y + 1.5f, spawnPoint.position.z), spawnPoint.rotation);
+                }
+                
+                /*IPlayerState state = entity.GetState<IPlayerState>();
                 PlayerController controller = entity.GetComponent<PlayerController>();
 
                 Vector3 pos;
@@ -39,10 +134,20 @@ using Bolt;
 
                 if (Physics.Raycast(r, out rh, maxDistance))
                 {
-                    var en = rh.transform.GetComponent<BoltEntity>();
-                    var hit = BoltNetwork.Instantiate(prefabToSpawn, new Vector3(rh.point.x, rh.point.y + 1.5f, rh.point.z), entity.transform.rotation);
+                    if(prefabToSpawn == BoltPrefabs.Floor)
+                    {
+                        if (rh.transform.gameObject.layer == LayerMask.NameToLayer("Terrain"))
+                        {
+                            BoltNetwork.Instantiate(prefabToSpawn, new Vector3(rh.point.x, rh.point.y, rh.point.z), entity.transform.rotation);
+                        }
+                        else
+                            BoltNetwork.Instantiate(prefabToSpawn, new Vector3(rh.point.x, rh.point.y, rh.point.z), entity.transform.rotation);
+                    }
+                    else
+                        BoltNetwork.Instantiate(prefabToSpawn, new Vector3(rh.point.x, rh.point.y + 1.5f, rh.point.z), entity.transform.rotation);
 
-                }
+                    var en = rh.transform.GetComponent<BoltEntity>();
+                }*/
             }
         }
 
