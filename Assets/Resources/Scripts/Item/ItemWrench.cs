@@ -9,7 +9,8 @@ using Bolt;
         public Transform player;
         public Transform asset;
         public Material phantomMaterial;
-
+        int currentPrefab = 0;
+        PrefabId prefabToSpawn = BoltPrefabs.DoorWay;
         public enum ConstructStateMachine { none, phantom };
         public ConstructStateMachine constructState = ConstructStateMachine.none;
 
@@ -39,11 +40,43 @@ using Bolt;
                 if (Physics.Raycast(r, out rh, maxDistance))
                 {
                     var en = rh.transform.GetComponent<BoltEntity>();
-                    var hit = BoltNetwork.Instantiate(BoltPrefabs.DoorWay, new Vector3(rh.point.x, rh.point.y + 1.5f, rh.point.z), entity.transform.rotation);
+                    var hit = BoltNetwork.Instantiate(prefabToSpawn, new Vector3(rh.point.x, rh.point.y + 1.5f, rh.point.z), entity.transform.rotation);
 
                 }
             }
         }
+
+        public override void SecondaryFire(PlayerCommand cmd, BoltEntity entity)
+        {
+            if (entity.isOwner)
+            {
+                
+                switch (currentPrefab)
+                {
+                    case 0:
+                        prefabToSpawn = BoltPrefabs.DoorWay;
+                        currentPrefab++;
+                        break;
+                    case 1:
+                        prefabToSpawn = BoltPrefabs.Wall;
+                        currentPrefab++;
+                        break;
+                    case 2:
+                        prefabToSpawn = BoltPrefabs.Floor;
+                        currentPrefab = 0;
+                        break;
+                    default:
+                        if (currentPrefab < 0 || currentPrefab > 2)
+                        {
+                            currentPrefab = 0;
+                        }
+                        break;
+                }
+                
+                Debug.Log(currentPrefab);
+            }
+        }
+
         public override void Fx(BoltEntity entity)
         {
 

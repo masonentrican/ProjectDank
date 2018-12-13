@@ -182,7 +182,7 @@ public class PlayerController : Bolt.EntityBehaviour<IPlayerState>
 
                 if(cmd.Input.secondaryFire)
                 {
-                    Aim(cmd);
+                    SecondaryUse(cmd);
                 }
             }
         }
@@ -202,10 +202,14 @@ public class PlayerController : Bolt.EntityBehaviour<IPlayerState>
         }
     }
 
-    void Aim(Command cmd)
+    void SecondaryUse(PlayerCommand cmd)
     {
        
-            state.SecondaryFire();
+           state.SecondaryFire();
+           if (entity.isOwner)
+           {
+               activeItem.SecondaryFire(cmd, entity);
+           }
         
     }
 

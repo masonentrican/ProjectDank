@@ -57,7 +57,7 @@ public class ItemBase : MonoBehaviour
     {
 
     }
-    public virtual void SecondaryFire(BoltEntity entity)
+    public virtual void SecondaryFire(PlayerCommand cmd, BoltEntity entity)
     {
 
     }
